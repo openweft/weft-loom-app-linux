@@ -1,0 +1,72 @@
+{
+  "_comment": "Copy to ~/.config/weft/app.json. The canonical shape declares clusters[] (one entry per weft cluster, i.e. one etcd quorum) with nested dcs[] (one per machine room inside the cluster). Failover lives within a cluster ; switching between clusters is operator-driven (federation). The legacy flat endpoints[] shape is still accepted and auto-wrapped into a single 'default' cluster.",
+
+  "gateway_addr": "127.0.0.1:0",
+  "hold_down": "15s",
+  "interval": "3s",
+
+  "_auth_comment": "OPTIONAL : omit the whole `auth` block to skip the sign-in window (preserves the dev / SSH-tunnel-only flow). When present, the app shows a 2-button picker (OpenPubkey / OIDC) before bringing up the tray, caches the resulting session token in the freedesktop Secret Service (GNOME Keyring / KWallet via D-Bus), and stamps Bearer on every WebView API call.",
+  "_auth_keypair_comment": "OPTIONAL dev-only third auth method. Set `keypair_fallback: true` AND `gateway` to add a 3rd button (Sign in with local key (dev)) to the picker. On click, the app loads (or generates + persists) an ed25519 private key in the Secret Service (label=weft-app-keypair), signs a 60-second assertion bound to gateway/api/auth/keypair, and POSTs it ; the server returns a session id_token if the matching public key is in its --keypair-allowlist file. Register your pubkey by running `weft-loom-app-linux --print-pubkey` and pasting the output into the server's allowlist (entries[].pubkey). NEVER enable this against an Internet-facing production cluster — the server-side flag should also be unset there.",
+  "auth": {
+    "issuer": "https://dex.weft.local/dex",
+    "client_id": "weft-loom-app-linux",
+    "scopes": ["openid", "profile", "email", "groups"],
+    "redirect_uri": "http://127.0.0.1:43219/callback",
+    "keypair_fallback": false,
+    "gateway": "https://weft.local:8080"
+  },
+
+  "clusters": [
+    {
+      "name": "paris",
+      "display_name": "Paris",
+      "dcs": [
+        {
+          "name": "salle-jaures",
+          "display_name": "Jaurès",
+          "kind": "ssh",
+          "ssh_addr": "bastion-jaures.paris.weft.example.com:22",
+          "user": "weft",
+          "key_path": "/home/weft/.ssh/id_ed25519",
+          "known_hosts_path": "/home/weft/.ssh/known_hosts",
+          "webui_addr": "127.0.0.1:8443"
+        },
+        {
+          "name": "salle-bercy",
+          "display_name": "Bercy",
+          "kind": "ssh",
+          "ssh_addr": "bastion-bercy.paris.weft.example.com:22",
+          "user": "weft",
+          "key_path": "/home/weft/.ssh/id_ed25519",
+          "known_hosts_path": "/home/weft/.ssh/known_hosts",
+          "webui_addr": "127.0.0.1:8443"
+        },
+        {
+          "name": "salle-tolbiac",
+          "display_name": "Tolbiac",
+          "kind": "direct",
+          "addr": "10.80.2.11:8080",
+          "_note": "Use 'direct' when the device is already on the WireGuard mesh ; the webui listener binds the mesh interface only."
+        }
+      ]
+    },
+    {
+      "name": "tokyo",
+      "display_name": "Tokyo",
+      "_note": "Second cluster, geographically distant — different etcd quorum, federated with paris through the cluster catalogue. Manual switching only ; today's flat failover pool still includes its DCs but tomorrow's per-cluster supervisor will isolate the choice to the active cluster.",
+      "dcs": [
+        {
+          "name": "shinjuku",
+          "kind": "ssh",
+          "ssh_addr": "bastion.tokyo.weft.example.com:22",
+          "user": "weft",
+          "key_path": "/home/weft/.ssh/id_ed25519",
+          "known_hosts_path": "/home/weft/.ssh/known_hosts",
+          "webui_addr": "127.0.0.1:8443"
+        }
+      ]
+    }
+  ],
+
+  "_legacy_endpoints_note": "Older configs that declared a flat endpoints[] without clusters[] still load — they're wrapped into a single 'default' cluster at load time. Migrate to clusters[].dcs[] for cluster-aware tray labels."
+}

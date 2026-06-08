@@ -1,0 +1,6 @@
+/weft-app-gtk
+*.flatpak
+dist/
+vendor/
+.flatpak-builder/
+build/

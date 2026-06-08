@@ -1,0 +1,17 @@
+{
+  "_comment": "Optional. Pass with --wg-config to enable the 'wireguard' transport. The device joins the cluster mesh as a userspace peer; 'wireguard' endpoints in app.json then resolve over the mesh. Keys are base64 (wg genkey / wg pubkey).",
+
+  "private_key": "REPLACE_with_base64_device_private_key=",
+  "addresses": ["10.80.9.2/32"],
+  "dns": ["10.80.0.53"],
+  "mtu": 1420,
+
+  "peers": [
+    {
+      "public_key": "REPLACE_with_base64_gateway_public_key=",
+      "endpoint": "gw-a.weft.example.com:51820",
+      "allowed_ips": ["10.80.0.0/16"],
+      "persistent_keepalive": 25
+    }
+  ]
+}

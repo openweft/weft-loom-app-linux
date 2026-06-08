@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.openweft.WeftApp</id>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>Apache-2.0</project_license>
+  <name>Weft</name>
+  <summary>Tray client for the Weft cloud dashboard</summary>
+  <description>
+    <p>
+      A system-tray client for the Weft platform dashboard. It hosts the
+      weft-webui dashboard in a WebKitGTK window and reaches the cluster
+      over an authenticated transport (SSH local-forward or the WireGuard
+      mesh), with automatic, anti-flap failover between datacenters.
+    </p>
+  </description>
+  <launchable type="desktop-id">io.openweft.WeftApp.desktop</launchable>
+  <url type="homepage">https://openweft.github.io</url>
+  <url type="bugtracker">https://github.com/openweft/weft-app-gtk/issues</url>
+  <developer_name>OpenWeft</developer_name>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="0.1.0" date="2026-05-31"/>
+  </releases>
+</component>

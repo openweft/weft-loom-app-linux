@@ -1,0 +1,41 @@
+version: '3'
+
+# weft-loom-app-linux is a cgo app: the WebView is WebKitGTK (via webview_go),
+# the tray is a StatusNotifierItem (via fyne.io/systray). Build deps on
+# Debian/Ubuntu: libgtk-3-dev libwebkit2gtk-4.1-dev. The shared, non-UI
+# logic lives in ../weft-app-core and is tested there.
+
+tasks:
+  deps:
+    desc: Fetch Go module dependencies (needs network)
+    cmds:
+      - go mod download
+
+  build:
+    desc: Build the weft-loom-app-linux binary (Linux, cgo)
+    cmds:
+      - CGO_ENABLED=1 go build -ldflags "-X main.version={{.VERSION}} -X main.commit={{.COMMIT}} -X main.date={{.DATE}}" -o weft-loom-app-linux .
+    vars:
+      VERSION:
+        sh: git describe --tags --always --dirty 2>/dev/null || echo dev
+      COMMIT:
+        sh: git rev-parse --short HEAD 2>/dev/null || echo none
+      DATE:
+        sh: date -u +%Y-%m-%dT%H:%M:%SZ
+
+  run:
+    desc: Build and run (tray mode)
+    deps: [build]
+    cmds:
+      - ./weft-loom-app-linux --config ./config.example.json
+
+  fmt:
+    desc: gofmt check
+    cmds:
+      - test -z "$(gofmt -l .)" || (gofmt -l . && exit 1)
+
+  flatpak:
+    desc: Build + install the Flatpak (needs flatpak-builder + vendored deps)
+    cmds:
+      - go mod vendor
+      - flatpak-builder --user --install --force-clean build packaging/io.openweft.WeftApp.yml

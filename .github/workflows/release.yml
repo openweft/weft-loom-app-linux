@@ -1,0 +1,64 @@
+name: Release
+
+# Tag-driven packaging. A Flatpak bundle is built and attached to the
+# GitHub Release ONLY on a vX.Y.Z tag — never on push to main (see the
+# project memory entry "No autopublish during dev").
+on:
+  push:
+    tags: ['v*']
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: 'Git ref to build from'
+        required: false
+        default: ''
+
+permissions:
+  contents: write
+
+jobs:
+  flatpak:
+    name: Flatpak (Linux)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref || github.ref }}
+          fetch-depth: 0
+
+      - name: Checkout weft-app-core
+        uses: actions/checkout@v4
+        with:
+          repository: openweft/weft-app-core
+          path: ../weft-app-core
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.26.x'
+
+      - name: Install flatpak toolchain + runtimes
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y flatpak flatpak-builder
+          sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
+          sudo flatpak install -y flathub org.gnome.Platform//46 org.gnome.Sdk//46 \
+              org.freedesktop.Sdk.Extension.golang//23.08
+
+      - name: Vendor Go deps (flatpak builds offline)
+        run: go mod vendor
+
+      - name: Build Flatpak bundle
+        run: |
+          flatpak-builder --repo=repo --force-clean build packaging/io.openweft.WeftApp.yml
+          flatpak build-bundle repo io.openweft.WeftApp.flatpak io.openweft.WeftApp
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: weft-loom-app-linux
+          path: io.openweft.WeftApp.flatpak
+
+      - name: Attach to release
+        if: startsWith(github.ref, 'refs/tags/')
+        uses: softprops/action-gh-release@v2
+        with:
+          files: io.openweft.WeftApp.flatpak

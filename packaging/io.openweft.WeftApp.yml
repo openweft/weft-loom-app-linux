@@ -1,0 +1,54 @@
+# Flatpak manifest for weft-loom-app-linux.
+#
+# Local build:
+#   # weft-app-core must sit next to this repo (the go.mod `replace`), and
+#   # deps must be vendored for an offline Flatpak build:
+#   go mod vendor
+#   flatpak install flathub org.gnome.Platform//46 org.gnome.Sdk//46 \
+#       org.freedesktop.Sdk.Extension.golang//23.08
+#   flatpak-builder --user --install --force-clean build packaging/io.openweft.WeftApp.yml
+#
+# Flathub disables network during builds, hence `go mod vendor` + the
+# vendored tree below. The GNOME runtime ships WebKitGTK (4.1) and GTK,
+# satisfying webview_go's cgo deps.
+app-id: io.openweft.WeftApp
+runtime: org.gnome.Platform
+runtime-version: '46'
+sdk: org.gnome.Sdk
+sdk-extensions:
+  - org.freedesktop.Sdk.Extension.golang
+command: weft-loom-app-linux
+
+finish-args:
+  - --share=network
+  - --socket=wayland
+  - --socket=fallback-x11
+  - --device=dri
+  # System tray (StatusNotifierItem) + desktop notifications.
+  - --talk-name=org.kde.StatusNotifierWatcher
+  - --talk-name=org.freedesktop.Notifications
+  # Read the user's config (~/.config/weft/app.json).
+  - --filesystem=xdg-config/weft:ro
+
+build-options:
+  append-path: /usr/lib/sdk/golang/bin
+  env:
+    GOFLAGS: -mod=vendor
+
+modules:
+  - name: weft-loom-app-linux
+    buildsystem: simple
+    build-commands:
+      - CGO_ENABLED=1 go build -o /app/bin/weft-loom-app-linux .
+      - install -Dm644 packaging/io.openweft.WeftApp.desktop
+          /app/share/applications/io.openweft.WeftApp.desktop
+      - install -Dm644 packaging/io.openweft.WeftApp.metainfo.xml
+          /app/share/metainfo/io.openweft.WeftApp.metainfo.xml
+      - install -Dm644 assets/icon.png
+          /app/share/icons/hicolor/256x256/apps/io.openweft.WeftApp.png
+    sources:
+      # For Flathub: replace with a `git`/`archive` source + a vendored
+      # tree (and embed weft-app-core, since the go.mod `replace` points at
+      # a sibling checkout). `dir` is for local iteration.
+      - type: dir
+        path: ..

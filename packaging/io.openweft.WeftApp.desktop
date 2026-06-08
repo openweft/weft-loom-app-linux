@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Weft
+Comment=Weft cloud dashboard (tray client)
+Icon=io.openweft.WeftApp
+Exec=weft-app-gtk
+Categories=Network;System;
+Terminal=false
+# Tray app: it has no primary window until "Open Dashboard" is clicked.
+X-GNOME-Autostart-enabled=true
