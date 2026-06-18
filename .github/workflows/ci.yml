@@ -14,10 +14,10 @@ jobs:
     name: gofmt + build (Linux, cgo/WebKitGTK)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Checkout weft-app-core
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: openweft/weft-app-core
           path: ../weft-app-core
@@ -28,7 +28,7 @@ jobs:
           sudo apt-get install -y libgtk-3-dev libwebkit2gtk-4.1-dev
 
       - name: Setup Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.26.x'
           cache: true

@@ -21,18 +21,18 @@ jobs:
     name: Flatpak (Linux)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
         with:
           ref: ${{ inputs.ref || github.ref }}
           fetch-depth: 0
 
       - name: Checkout weft-app-core
-        uses: actions/checkout@v4
+        uses: actions/checkout@v7
         with:
           repository: openweft/weft-app-core
           path: ../weft-app-core
 
-      - uses: actions/setup-go@v5
+      - uses: actions/setup-go@v6
         with:
           go-version: '1.26.x'
 
@@ -52,7 +52,7 @@ jobs:
           flatpak-builder --repo=repo --force-clean build packaging/io.openweft.WeftApp.yml
           flatpak build-bundle repo io.openweft.WeftApp.flatpak io.openweft.WeftApp
 
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v7
         with:
           name: weft-loom-app-linux
           path: io.openweft.WeftApp.flatpak
