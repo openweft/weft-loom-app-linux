@@ -1,3 +1,5 @@
+<p align="center"><img src="https://raw.githubusercontent.com/openweft/brand/main/social/weft-loom-app-linux.png" alt="weft-loom-app-linux" width="720"></p>
+
 # weft-loom-app-linux
 
 Linux tray client for the [Weft](https://github.com/openweft) dashboard.
