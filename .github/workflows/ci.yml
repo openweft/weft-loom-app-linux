@@ -15,13 +15,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
-
-      - name: Checkout weft-app-core
-        uses: actions/checkout@v7
-        with:
-          repository: openweft/weft-app-core
-          path: ../weft-app-core
-
       - name: Install WebKitGTK + GTK dev libs
         run: |
           sudo apt-get update

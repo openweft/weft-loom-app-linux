@@ -25,13 +25,6 @@ jobs:
         with:
           ref: ${{ inputs.ref || github.ref }}
           fetch-depth: 0
-
-      - name: Checkout weft-app-core
-        uses: actions/checkout@v7
-        with:
-          repository: openweft/weft-app-core
-          path: ../weft-app-core
-
       - uses: actions/setup-go@v6
         with:
           go-version: '1.26.x'
