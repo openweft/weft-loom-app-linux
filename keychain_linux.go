@@ -79,7 +79,7 @@ func (secretServiceKC) Set(service, account string, tok Token) error {
 }
 
 func (secretServiceKC) Delete(service, account string) error {
-	return secretServiceDelete("weft-app", service, account)
+	return secretServiceDelete(service, account)
 }
 
 // dbusConn is overridable by tests ; production hits the user session
