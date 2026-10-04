@@ -1,6 +1,6 @@
 module github.com/openweft/weft-loom-app-linux
 
-go 1.26.4
+go 1.27.1
 
 require (
 	fyne.io/systray v1.11.0
