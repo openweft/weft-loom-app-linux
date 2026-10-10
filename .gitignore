@@ -4,3 +4,4 @@ dist/
 vendor/
 .flatpak-builder/
 build/
+/weft-loom-app-linux
