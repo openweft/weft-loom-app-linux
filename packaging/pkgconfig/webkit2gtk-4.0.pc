@@ -1,0 +1,10 @@
+# Flatpak-only shim, see packaging/io.openweft.WeftApp.yml.
+#
+# webview_go asks pkg-config for `webkit2gtk-4.0` (the libsoup2 build),
+# which the GNOME 46 runtime no longer ships. It ships `webkit2gtk-4.1`,
+# the same WebKit2GTK API built against libsoup3; webview_go uses no
+# libsoup API, so resolving the 4.0 name to 4.1 is enough.
+Name: webkit2gtk-4.0
+Description: webkit2gtk-4.0 name resolved to webkit2gtk-4.1 (Flatpak build shim)
+Version: 2.44.0
+Requires: webkit2gtk-4.1

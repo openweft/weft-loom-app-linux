@@ -46,7 +46,12 @@ modules:
     buildsystem: simple
     build-commands:
       - .go-toolchain/bin/go version
-      - CGO_ENABLED=1 .go-toolchain/bin/go build -o /app/bin/weft-loom-app-linux .
+      # webview_go asks pkg-config for webkit2gtk-4.0, absent from the
+      # GNOME 46 runtime; packaging/pkgconfig resolves it to 4.1.
+      - PKG_CONFIG_PATH="$PWD/packaging/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          pkg-config --modversion webkit2gtk-4.0 webkit2gtk-4.1
+      - PKG_CONFIG_PATH="$PWD/packaging/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          CGO_ENABLED=1 .go-toolchain/bin/go build -o /app/bin/weft-loom-app-linux .
       - install -Dm644 packaging/io.openweft.WeftApp.desktop
           /app/share/applications/io.openweft.WeftApp.desktop
       - install -Dm644 packaging/io.openweft.WeftApp.metainfo.xml
