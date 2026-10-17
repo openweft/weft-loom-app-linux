@@ -56,8 +56,12 @@ modules:
           /app/share/applications/io.openweft.WeftApp.desktop
       - install -Dm644 packaging/io.openweft.WeftApp.metainfo.xml
           /app/share/metainfo/io.openweft.WeftApp.metainfo.xml
-      - install -Dm644 assets/icon.png
+      # Export refuses an icon larger than 512x512 and assets/icon.png is
+      # 1024x1024: packaging/icons holds 256 and 512 px downscales of it.
+      - install -Dm644 packaging/icons/io.openweft.WeftApp-256.png
           /app/share/icons/hicolor/256x256/apps/io.openweft.WeftApp.png
+      - install -Dm644 packaging/icons/io.openweft.WeftApp-512.png
+          /app/share/icons/hicolor/512x512/apps/io.openweft.WeftApp.png
     sources:
       # For Flathub: replace with a `git`/`archive` source + a vendored
       # tree. `dir` is for local iteration.
