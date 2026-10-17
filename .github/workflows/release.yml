@@ -34,8 +34,9 @@ jobs:
           sudo apt-get update
           sudo apt-get install -y flatpak flatpak-builder
           sudo flatpak remote-add --if-not-exists flathub https://flathub.org/repo/flathub.flatpakrepo
-          sudo flatpak install -y flathub org.gnome.Platform//46 org.gnome.Sdk//46 \
-              org.freedesktop.Sdk.Extension.golang//23.08
+          # No golang SDK extension: its Go is older than go.mod requires;
+          # the manifest pins the Go toolchain as a checksummed source.
+          sudo flatpak install -y flathub org.gnome.Platform//46 org.gnome.Sdk//46
 
       - name: Vendor Go deps (flatpak builds offline)
         run: go mod vendor

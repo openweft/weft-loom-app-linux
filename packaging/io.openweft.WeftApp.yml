@@ -1,22 +1,28 @@
 # Flatpak manifest for weft-loom-app-linux.
 #
 # Local build:
-#   # weft-app-core must sit next to this repo (the go.mod `replace`), and
 #   # deps must be vendored for an offline Flatpak build:
 #   go mod vendor
-#   flatpak install flathub org.gnome.Platform//46 org.gnome.Sdk//46 \
-#       org.freedesktop.Sdk.Extension.golang//23.08
+#   flatpak install flathub org.gnome.Platform//46 org.gnome.Sdk//46
 #   flatpak-builder --user --install --force-clean build packaging/io.openweft.WeftApp.yml
 #
 # Flathub disables network during builds, hence `go mod vendor` + the
-# vendored tree below. The GNOME runtime ships WebKitGTK (4.1) and GTK,
+# vendored tree below. The GNOME runtime ships WebKitGTK and GTK,
 # satisfying webview_go's cgo deps.
+#
+# The Go toolchain is a source of this module, not the
+# org.freedesktop.Sdk.Extension.golang SDK extension: the extension's
+# Go is older than the go.mod floor (1.27.2), so `go` tried to
+# download the newer toolchain during the build, where the sandbox has
+# no network ("dial tcp: lookup proxy.golang.org ... connection
+# refused"). flatpak-builder downloads sources before the offline
+# build, checks them against the pinned sha256, and GOTOOLCHAIN=local
+# makes any later mismatch fail loudly instead of reaching for the
+# network. Keep the version in step with go.mod.
 app-id: io.openweft.WeftApp
 runtime: org.gnome.Platform
 runtime-version: '46'
 sdk: org.gnome.Sdk
-sdk-extensions:
-  - org.freedesktop.Sdk.Extension.golang
 command: weft-loom-app-linux
 
 finish-args:
@@ -31,24 +37,46 @@ finish-args:
   - --filesystem=xdg-config/weft:ro
 
 build-options:
-  append-path: /usr/lib/sdk/golang/bin
   env:
     GOFLAGS: -mod=vendor
+    GOTOOLCHAIN: local
 
 modules:
   - name: weft-loom-app-linux
     buildsystem: simple
     build-commands:
-      - CGO_ENABLED=1 go build -o /app/bin/weft-loom-app-linux .
+      - .go-toolchain/bin/go version
+      # webview_go asks pkg-config for webkit2gtk-4.0, absent from the
+      # GNOME 46 runtime; packaging/pkgconfig resolves it to 4.1.
+      - PKG_CONFIG_PATH="$PWD/packaging/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          pkg-config --modversion webkit2gtk-4.0 webkit2gtk-4.1
+      - PKG_CONFIG_PATH="$PWD/packaging/pkgconfig${PKG_CONFIG_PATH:+:$PKG_CONFIG_PATH}"
+          CGO_ENABLED=1 .go-toolchain/bin/go build -o /app/bin/weft-loom-app-linux .
       - install -Dm644 packaging/io.openweft.WeftApp.desktop
           /app/share/applications/io.openweft.WeftApp.desktop
       - install -Dm644 packaging/io.openweft.WeftApp.metainfo.xml
           /app/share/metainfo/io.openweft.WeftApp.metainfo.xml
-      - install -Dm644 assets/icon.png
+      # Export refuses an icon larger than 512x512 and assets/icon.png is
+      # 1024x1024: packaging/icons holds 256 and 512 px downscales of it.
+      - install -Dm644 packaging/icons/io.openweft.WeftApp-256.png
           /app/share/icons/hicolor/256x256/apps/io.openweft.WeftApp.png
+      - install -Dm644 packaging/icons/io.openweft.WeftApp-512.png
+          /app/share/icons/hicolor/512x512/apps/io.openweft.WeftApp.png
     sources:
       # For Flathub: replace with a `git`/`archive` source + a vendored
-      # tree (and embed weft-app-core, since the go.mod `replace` points at
-      # a sibling checkout). `dir` is for local iteration.
+      # tree. `dir` is for local iteration.
       - type: dir
         path: ..
+      # Build-only Go toolchain, unpacked into the module's build
+      # directory (dot-prefixed, so `go build .` never sees it) and
+      # never installed into /app.
+      - type: archive
+        only-arches: [x86_64]
+        url: https://go.dev/dl/go1.27.2.linux-amd64.tar.gz
+        sha256: ecbadb99091a3f46e31f5f934b068b1864eafa7995211b39eaddf76996045fe5
+        dest: .go-toolchain
+      - type: archive
+        only-arches: [aarch64]
+        url: https://go.dev/dl/go1.27.2.linux-arm64.tar.gz
+        sha256: 94f3e30b8e374bc285e7dadc11e0865726b9bc6e85b841ccceaabc0214c6b7c8
+        dest: .go-toolchain
